@@ -30,6 +30,10 @@ class BackupFile:
     add_file(path)
         Method invoked when a file is added to the list.
 
+    rem_item(item_name)
+        If on the list, this method will remove an item with corresponding
+        atributes from self.items
+
     """
 
     def __init__(self, path, the_name="Change name", the_owner="Set owner",
@@ -96,4 +100,10 @@ class BackupFile:
         Removes an item and its coresponding atributes
         from the backup list.
         """
-
+        try:
+            index = self.items[0].index(item)
+            self.items[0].pop(index)
+            self.items[1].pop(index)
+            self.items[2].pop(index)
+        except ValueError:
+            print "This item doesnt exist."
