@@ -9,10 +9,31 @@ class BackupFile:
     This is a main class in this little backup tool. This is where a
     list of all backuped files with their status is held, as well
     as some other information. More on it soon.
+
+    __init__(path, the_name, the_owner, the_comment)
+        For initialization class needs path to directory which is
+        about to be mirrored. Other atributes are optional.
+
+    __list_dir__(dir_path)
+        Private method, used to list all files in path directory
+        and subdirectories. DO NOT USE
+
+    __fill_table__()
+        Fills table with name of file/dir, its size and date of
+        last modification. DO NOT USE
+
+    add_dir(path)
+        Method invoked when the object is created. It runs list_dir()
+        and get_attr() to update list of files. Checks if the path
+        exists, and handles IO errors.
+
+    add_file(path)
+        Method invoked when a file is added to the list.
+
     """
 
-    def __init__(self, the_name = "Change name", the_owner = "Set owner",
-                 the_comment = "Set comment", path):
+    def __init__(self, path, the_name="Change name", the_owner="Set owner",
+                 the_comment="Set comment"):
         self.items = [[], [], []]
         created_on = time.ctime(time.time())
         name = the_name
@@ -23,7 +44,16 @@ class BackupFile:
 
         return
 
-    def list_dir(self, dir_path):
+    def __fill_table__(self, path):
+        """
+        This function fills table with file/dir name, its size and date
+        of last modification.
+        """
+        self.items[0].append(path)
+        self.items[1].append(os.path.getsize(path))
+        self.items[2].append(time.ctime(os.path.getmtime(path)))
+
+    def __list_dir__(self, dir_path):
         """
         This function lists all files in all subfolders in the
         folder given to the function.
@@ -32,22 +62,8 @@ class BackupFile:
             for file in files:
                 path = os.path.join(dir, file)
                 path = os.path.normcase(path)
-                self.items[0].append(path)
-
+                self.__fill_table__(path)
         os.path.walk(dir_path, fill_items, 0)
-
-    def get_attr(self):
-        """
-        Takes all files listed, and checks its size and
-        date of last modification.
-        """
-        #if self.items[0] != []:
-        #    for path in self.items[0]:
-        #        self.items[1].append(os.path.getsize(path))
-        #        self.items[2].append(time.ctime(os.path.getmtime(path)))
-        # This method wasn't good, as it didnt allow you to change
-        # the list of files. New attributes was added to the end of
-        # the list. Messy. Lets do it the proper way.
 
     def add_dir(self, new_path):
         """
@@ -57,12 +73,27 @@ class BackupFile:
         """
         try:
             if os.path.exists(new_path):
-                self.list_dir(new_path)
-                self.get_attr()
+                self.__list_dir__(new_path)
             else:
                 print "Entered path does not exist"
         except IOError:
             print "Cannot read from directory"
 
     def add_file(self, new_file):
-        print "Little to do here, change the get_attr() first"
+        """
+        Adds a single file to the backup list.
+        """
+        try:
+            if os.path.exists(new_file):
+                self.__fill_table__(new_file)
+            else:
+                print "Entered file doesnt exist."
+        except IOError:
+            print "Cannot access the file"
+
+    def rem_item(self, item):
+        """
+        Removes an item and its coresponding atributes
+        from the backup list.
+        """
+
