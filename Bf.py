@@ -8,7 +8,12 @@ class BackupFile:
     """
     This is a main class in this little backup tool. This is where a
     list of all backuped files with their status is held, as well
-    as some other information. More on it soon.
+    as some other information, like the time of last modification
+    and size of files. Apart of that, class hase fallowing fields:
+        the_name    = name for this backup object, used for invoking
+                      all operations on it, after its creation
+        the_owner   = owner, creator of this very backup object
+        the_comment = comment field you van fill for future references
 
     __init__(path, the_name, the_owner, the_comment)
         For initialization class needs path to directory which is
