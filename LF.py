@@ -219,3 +219,5 @@ class LocalFolder:
             print "Cannot load the list of files from %s \n %s" % (
                 full_path, error)
 
+if __name__ == '__main__':
+    print 'This class is not a standalone program'
