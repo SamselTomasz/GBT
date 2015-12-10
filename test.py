@@ -1,8 +1,9 @@
 # !/usr/bin/python
 # coding=utf-8
 import unitest
-import Bf
+import LF
 import os
+
 
 class Local_Files_Test(unittest, TestCase):
     def setUp(self):
@@ -56,9 +57,10 @@ class Local_Files_Test(unittest, TestCase):
                               """)
             del sample_file
         except IOError, error:
-            print "Cannot create file '%s' : '%s'" % (file2, error)
-        test_info = {"wcd":working_directory, "td1":testdir, "f1":file1,
-                     "td2":testdir2, "f2":file2}
+            print "Cannot create file %s : %s" % (file2, error)
+        test_info = {"wcd": working_directory, "td1": testdir, "f1": file1,
+                     "td2": testdir2, "f2": file2}
         return test_info
 
     def tearDown(self, test_info):
+        "todo"
