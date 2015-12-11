@@ -5,7 +5,9 @@ import LF
 import os
 import shutil
 
-
+# ---------------------------------------------------------------------------
+# LocalFolderSuper is preparing test directory with sample files and
+# deletes it after the test are done
 class LocalFolderSuper (unittest.TestCase):
     test_info = {}
     def setUp (self):
@@ -74,8 +76,9 @@ class LocalFolderSuper (unittest.TestCase):
         except IOError, error:
             print "Cannot create directory %s : %s" % (testdir3, error)
         # make a dictionary of paths to all of them
-        self.test_info = {"wcd": working_directory, "td1": testdir, "f1": file1,
-                     "td2": testdir2, "f2": file2, "td3": testdir3}
+        self.test_info = {"wcd": working_directory, "td1": testdir,
+                          "f1": file1, "td2": testdir2, "f2": file2,
+                          "td3": testdir3}
         print '----------\n'
 
     def tearDown(self):
@@ -88,14 +91,46 @@ class LocalFolderSuper (unittest.TestCase):
             shutil.rmtree(self.test_info['td1'])
             shutil.rmtree(self.test_info['td3'])
         except IOError, error:
-            print 'Couldnt delete test directory %s : %s' % (self.test_info['td1'], error)
+            print 'Couldnt delete test directory %s : %s' %
+                (self.test_info['td1'], error)
         print '----------\n'
 
+# ---------------------------------------------------------------------------
 # create here all tests needed for local folder class
+# pass LocalFolderSuper for setting up and tearing down test dirs
 class LocalFolderTest (LocalFolderSuper):
     def runTest (self):
-        print '----------\nna razie tyle\n----------\n'
+        print '\t----------\n\tcreating empty test object'
+        test = LF.LocalFolder()
 
+        # after creating an empty test LocalFolder object just check if
+        # all fields are empty
+        self.failUnless(test.items == [[], [], []],
+                    "List of items isnt empty: %s" % test.items)
+        self.failUnless(test.backup_local_path == "",
+                    "Backup path isnt empty: %s" % test.backup_local_path)
+        self.failUnless(test.backup_remote_path == "",
+                    "Remote path isnt empty: %s" % test.backup_remote_path)
+
+        # testing add_dir() method
+        print '\t----------\n\ttesting LF.add_dir()\n'
+        test.add_dir(self.test_info['td1'])
+        self.failIf(test.items == [[], [], []],
+                    "LF.add_dir didnt list dir %s" % self.test_info['td1'])
+        self.failUnless(test.items[0][0] == self.test_info['f1'],
+                    "Listed file doesnt mach: %s\n%s" %
+                    (test.items[0][0], self.test_info['f1']))
+
+        # adding not existing dir
+        self.assertRaisesRegexp(IOError, test.add_dir('/this/dir/doesnt/exist'))
+        print '\t----------\n'
+
+# !!! add searching for existing item in the list, before listing it again
+
+        # another test
+        print '\t----------\n\tna razie tyle\n\t----------\n'
+
+# ---------------------------------------------------------------------------
 # set up the test suite
 def suite():
     suite = unittest.TestSuite()
@@ -106,6 +141,7 @@ def suite():
     # return created test suite
     return suite
 
+# ---------------------------------------------------------------------------
 # and finally if test is run as main program, run test runner
 if __name__ == '__main__':
     runner = unittest.TextTestRunner()
