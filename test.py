@@ -91,8 +91,8 @@ class LocalFolderSuper (unittest.TestCase):
             shutil.rmtree(self.test_info['td1'])
             shutil.rmtree(self.test_info['td3'])
         except IOError, error:
-            print 'Couldnt delete test directory %s : %s' %
-                (self.test_info['td1'], error)
+            print 'Couldnt delete test directory %s : %s' % (
+                self.test_info['td1'], error)
         print '----------\n'
 
 # ---------------------------------------------------------------------------
