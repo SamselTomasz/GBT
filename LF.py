@@ -87,7 +87,7 @@ class LocalFolder:
             for file in files:
                 path = os.path.join(dir, file)
                 path = os.path.normcase(path)
-                print path
+#                print path
                 self.__fill_table__(path)
         os.path.walk(dir_path, fill_items, 0)
 
@@ -99,10 +99,7 @@ class LocalFolder:
         Takes full path to directory as an argument.
         """
         try:
-            if os.path.exists(new_path):
-                self.__list_dir__(new_path)
-            else:
-                print "Entered path:\n%s\ndoes not exist." % new_path
+            self.__list_dir__(new_path)
         except IOError, error:
             print "Cannot read from directory: %s \n %s" % (new_path, error)
 
@@ -112,13 +109,20 @@ class LocalFolder:
         Checks items atributes after adding it to the list.
         Takes a full path to an item as argument.
         """
-        try:
-            if os.path.exists(new_file):
+        if self.items[0].count(new_file) != 1:
+            try:
                 self.__fill_table__(new_file)
-            else:
-                print "Entered file: \n%s\ndoesnt exist." % new_file
-        except IOError, error:
-            print "Cannot access the file: %s \n %s" % (new_file, error)
+            except OSError, error:
+                print "%s\ndoesnt exist.\n%s " % (new_file, error)
+
+#        try:
+#            self.items[0].index(new_file)
+#        except ValueError:
+#            try:
+#                self.__fill_table__(new_file)
+#            except OSError, error:
+#                print "Entered file: \n%s\ndoesnt exist.\n%s " % (
+#                    new_file, error)
 
     def rem_list_item(self, item):
         """
@@ -133,6 +137,7 @@ class LocalFolder:
             self.items[2].pop(index)
         except ValueError, error:
             print "This item: %s doesnt exist.\n%s" % (item, error)
+
     def copy_to_remote(self, local_item, remote_item):
         """
         Copy local file or directory to remote server.
@@ -190,7 +195,7 @@ class LocalFolder:
                 if os.path.isdir(item_path):
                     shutil.rmtree(item_path)
         except IOError, error:
-            print "Cannot delete %s \n %s" % (remote_path, error)
+            print "Cannot delete %s \n %s" % (item_path, error)
 
     def save_backup_list(self, save_file):
         """
@@ -217,7 +222,7 @@ class LocalFolder:
              [self.backup_remote_path]] = pickle.load(pickle_file)
         except IOError, error:
             print "Cannot load the list of files from %s \n %s" % (
-                full_path, error)
+                save_file, error)
 
 if __name__ == '__main__':
     print 'This class is not a standalone program'
