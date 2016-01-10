@@ -4,6 +4,7 @@ import unittest
 import LF
 import os
 import shutil
+import sys
 
 
 # ---------------------------------------------------------------------------
@@ -108,9 +109,13 @@ class LocalFolderTest (LocalFolderSuper):
     def runTest(self):
 
         print '\t----------\n\ttesting calling empty test object'
+
+        # create an empty LF object
         test = LF.LocalFolder()
+
         # after creating an empty test LocalFolder object just check if
         # all fields are empty
+
         self.failUnless(test.items == [[], [], []],
                         "List of items isnt empty: %s" % test.items)
         self.failUnless(test.backup_local_path == "",
@@ -119,18 +124,26 @@ class LocalFolderTest (LocalFolderSuper):
                         "Remote path isnt empty: %s" % test.backup_remote_path)
 
     # testing add_dir() method
+
         print '\t----------\n\ttesting LF.add_dir()'
-        test.add_dir(self.test_info['td1'])
+
+        # adding content of test dir 1
+        self.assertIs(test.add_dir(self.test_info['td1']), 'OK',
+                      msg='Didnt list existing directory')
+        # have a look if list isnt still empty
         self.failIf(test.items == [[], [], []],
                     "LF.add_dir didnt list dir %s" % self.test_info['td1'])
+        # check if the first item on the list match the first test file
         self.failUnless(test.items[0][0] == self.test_info['f1'],
                         "Listed file doesnt mach: %s\n%s" %
                         (test.items[0][0], self.test_info['f1']))
         # adding not existing dir
-        self.assertRaises(IOError, test.add_dir('/this/dir/doesnt/exist'))
+        self.assertIsNot(test.add_dir('/this/dir/doesnt/exist'), 'OK',
+                         msg='Listed not existing file')
 
-    # testing add_list_item method
-        # lets create new not listed yet file
+    # testing add_list_item() method
+
+        # lets create new not listed file
         print '\t----------\n\ttesting LF.add_list_item()'
         file3 = os.path.join(self.test_info['td3'], "file3.txt")
         try:
@@ -144,29 +157,51 @@ class LocalFolderTest (LocalFolderSuper):
                               Sample line cc
                               """)
             del sample_file
-        except IOError, error:
-            print "Cannot create file %s : %s" % (file3, error)
+        except:
+            print "Cannot create file %s : %s" % (file3, sys.exc_info())
+
+        # fill in test_info with a name of new file
         self.test_info.update({'f3': file3})
+
         # now do the test
+        # save how many items is on the list
         old_items_count = len(test.items[0])
-        test.add_list_item(self.test_info['f3'])
-        self.failUnless(old_items_count == len(test.items[0]) - 1,
-                        "Didnt add %s to the list of items" % file3)
+        # check if adding went without errors
+        self.assertIs(test.add_list_item(self.test_info['f3']), 'OK',
+                      msg='Error adding %s' % file3)
+        # check if list is longer by one
+        self.assertTrue(old_items_count == len(test.items[0]) - 1,
+                        msg="Didnt add %s to the list of items" % file3)
+        # check if path of file is of the string type
         self.failUnless(type(test.items[0][old_items_count]) == str,
                         "Didnt list path attribute of new file %s" % file3)
+        # check if it matchs the actual path of the file
+        self.assertIs(test.items[0][-1], file3, msg='Path is wrong')
+        # check if the size was updated
         self.failUnless(type(test.items[1][old_items_count]) == long,
                         "Dindt list size attribute of new file %s" % file3)
+        # check if the date was updated
         self.failUnless(type(test.items[2][old_items_count]) == str,
                         "Didnt list date attribute of new file %s" % file3)
         # try to add file that doesnt exist
-# --- tu sie bije
-        self.assertRaises(OSError, test.add_list_item('/file/doesnt/exist'))
-        self.assertRaises(OSError, test.add_list_item('fuck'))
+        self.assertIsNot(test.add_list_item('/file/doesnt/exist'), 'OK',
+                         msg='Error while adding not existing folder')
         # try to add items thats already on the list
-        self.assertRaisesRegexp(ValueError, test.add_list_item(
-            test.items[0][old_items_count]))
+        self.assertIsNot(test.add_list_item(test.items[0][old_items_count]),
+                         'OK', msg='No error while adding existing item')
         # another test
         print '\t----------\n\tna razie tyle\n\t----------'
+
+    # testing rem_list_item()
+        # check if function is working
+        self.assertIs(test.rem_list_item(self.test_info['f3']), 'OK',
+                      msg='Error while removing %s from list' % file3)
+        # check if the function actually removed one item from the list
+        self.assertEqual(len(test.items[0]), old_items_count,
+                         msg='The lenght of the list is not the same')
+        # check if the correct item was removed from list
+        self.assertEqual(test.items.count(file3), 0,
+                         msg='The file %s wasnt removed from list' % file3)
 
 
 # ---------------------------------------------------------------------------

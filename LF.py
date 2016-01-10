@@ -4,6 +4,7 @@ import os
 import time
 import shutil
 import pickle
+import sys
 
 
 class LocalFolder:
@@ -98,10 +99,15 @@ class LocalFolder:
         of last modification and stores them along with file/dir path.
         Takes full path to directory as an argument.
         """
-        try:
-            self.__list_dir__(new_path)
-        except IOError, error:
-            print "Cannot read from directory: %s \n %s" % (new_path, error)
+        status = 'OK'
+        if os.path.exists(new_path):
+            try:
+                self.__list_dir__(new_path)
+            except:
+                status = sys.exc_info()
+        else:
+            status = 'File %s doesnt exist.' % new_path
+        return status
 
     def add_list_item(self, new_file):
         """
@@ -109,20 +115,18 @@ class LocalFolder:
         Checks items atributes after adding it to the list.
         Takes a full path to an item as argument.
         """
-        if self.items[0].count(new_file) != 1:
-            try:
-                self.__fill_table__(new_file)
-            except OSError, error:
-                print "%s\ndoesnt exist.\n%s " % (new_file, error)
-
-#        try:
-#            self.items[0].index(new_file)
-#        except ValueError:
-#            try:
-#                self.__fill_table__(new_file)
-#            except OSError, error:
-#                print "Entered file: \n%s\ndoesnt exist.\n%s " % (
-#                    new_file, error)
+        status = 'OK'
+        if self.items[0].count(new_file) == 0:
+            if os.path.exists(new_file) is True:
+                try:
+                    self.__fill_table__(new_file)
+                except:
+                    status = sys.exc_info()
+            else:
+                status = 'Cannot read file %s' % new_file
+        else:
+            status = 'File %s already listed' % new_file
+        return status
 
     def rem_list_item(self, item):
         """
@@ -130,13 +134,18 @@ class LocalFolder:
         from the backup list.
         Takes a full path to a file/dir as atribute.
         """
-        try:
-            index = self.items[0].index(item)
-            self.items[0].pop(index)
-            self.items[1].pop(index)
-            self.items[2].pop(index)
-        except ValueError, error:
-            print "This item: %s doesnt exist.\n%s" % (item, error)
+        status = 'OK'
+        if self.items[0].count(item) != 0:
+            try:
+                index = self.items[0].index(item)
+                self.items[0].pop(index)
+                self.items[1].pop(index)
+                self.items[2].pop(index)
+            except:
+                status = sys.exc_info()
+        else:
+            status = 'An item %s is not on the list' % item
+        return status
 
     def copy_to_remote(self, local_item, remote_item):
         """
