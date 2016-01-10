@@ -27,8 +27,14 @@ class LocalFolderSuper (unittest.TestCase):
             f1  = full path to first file created
             td2 = full path to second directory created
             f2  = full path to second file created
-            td3 = full path to third, empty dir
+            td3 = full path to third dir
+            td4 = full path to empty dir
+
+            - few entries added during tests:
             f3  = full path to third file
+                    added while doing the add_list_item() test
+            rf  = full path to remote item
+                    added while doing the copy_to_remote() test
 
         Both files are filled with some sample text so their sizes are
         not equal to zero.
@@ -81,10 +87,17 @@ class LocalFolderSuper (unittest.TestCase):
             os.mkdir(testdir3)
         except IOError, error:
             print "Cannot create directory %s : %s" % (testdir3, error)
+        # another empty dir
+        testdir4 = os.path.join(working_directory, 'testdir24')
+        try:
+            os.mkdir(testdir4)
+        except IOError, error:
+            print "Cannot create directory %s : %s" % (testdir4, error)
+
         # make a dictionary of paths to all of them
         self.test_info = {"wcd": working_directory, "td1": testdir,
                           "f1": file1, "td2": testdir2, "f2": file2,
-                          "td3": testdir3}
+                          "td3": testdir3, "td4": testdir4}
         print '----------\n'
 
     def tearDown(self):
@@ -96,6 +109,7 @@ class LocalFolderSuper (unittest.TestCase):
         try:
             shutil.rmtree(self.test_info['td1'])
             shutil.rmtree(self.test_info['td3'])
+            shutil.rmtree(self.test_info['td4'])
         except IOError, error:
             print 'Couldnt delete test directory %s : %s' % (
                 self.test_info['td1'], error)
@@ -189,10 +203,10 @@ class LocalFolderTest (LocalFolderSuper):
         # try to add items thats already on the list
         self.assertIsNot(test.add_list_item(test.items[0][old_items_count]),
                          'OK', msg='No error while adding existing item')
-        # another test
-        print '\t----------\n\tna razie tyle\n\t----------'
 
     # testing rem_list_item()
+
+        print '\t----------\n\ttesting LF.rem_list_item()'
         # check if function is working
         self.assertIs(test.rem_list_item(self.test_info['f3']), 'OK',
                       msg='Error while removing %s from list' % file3)
@@ -202,6 +216,60 @@ class LocalFolderTest (LocalFolderSuper):
         # check if the correct item was removed from list
         self.assertEqual(test.items.count(file3), 0,
                          msg='The file %s wasnt removed from list' % file3)
+
+    # testing copy_to_remote()
+
+        print '\t----------\n\ttesting LF.copy_to_remote()'
+        # lets prepare few variables, for the file first
+        local_item = self.test_info['f1']
+        file_name = os.path.split(local_item)[1]
+        remote_item = os.path.join(self.test_info['td3'], file_name)
+        # try to copy a file
+        self.assertIs(test.copy_to_remote(local_item, remote_item), 'OK',
+                      msg='Error while copying file')
+        # check if the file was copied
+        self.assertTrue(os.path.exists(remote_item),
+                        msg='The file %s wasnt copied to %s' % (
+                            local_item, remote_item))
+        # lets see how it handles not existing file
+        self.assertIsNot(test.copy_to_remote('/fake/file', remote_item), 'OK',
+                         msg='No error while copying not existing file')
+        # update test_info with remote file
+        self.test_info.update({'rf': remote_item})
+
+        # lets try how its working with directories
+        # first create another dir
+        remote_dir = os.path.join(self.test_info['td3'], os.path.split(
+            self.test_info['td4'])[1])
+        # and copy (create) dir in remote location
+        self.assertIs(test.copy_to_remote(self.test_info['td4'], remote_dir),
+                      'OK', msg='Error copying directory')
+        # check if the dir was actually created
+        self.assertTrue(os.path.exists(remote_dir),
+                        msg='Directory wasnt created')
+        # and dir that doesnt exist
+        self.assertIsNot(test.copy_to_remote('/some/dir', '/not/existing/dir'),
+                         'OK', msg='Function didnt handle not existing dir')
+
+    # testing copy_from_remote()
+
+        print '\t----------\n\ttesting LF.copy_from_remote()'
+        # first delete empty folder to make room for tests and create short
+        # names for remote and local items
+        try:
+            shutil.rmtree(remote_dir)
+        except:
+            print 'Couldnt delete %s' % remote_dir
+        self.assertFalse(os.path.exists(remote_dir))
+        local_item = remote_dir
+        remote_item = self.test_info['td4']
+        # lets test these directories first
+        self.assertIs(test.copy_from_remote(remote_item, local_item), 'OK',
+                      msg='Error while copying dir')
+
+    # the goodbye message
+
+        print '\t----------\n\tna razie tyle\n\t----------'
 
 
 # ---------------------------------------------------------------------------

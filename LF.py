@@ -157,17 +157,22 @@ class LocalFolder:
         location, nothing more.
         Files and subdirs in it must be copied on them own.
         """
-        try:
-            if os.path.exists(local_item):
-                if os.path.isfile(local_item):
+        status = 'OK'
+        if os.path.exists(local_item):
+            if os.path.isfile(local_item):
+                try:
                     shutil.copy2(local_item, remote_item)
-                if os.path.isdir(local_item):
-                    if not os.path.exists(remote_item):
+                except:
+                    status = sys.exc_info()
+            if os.path.isdir(local_item):
+                if not os.path.exists(remote_item):
+                    try:
                         os.mkdir(remote_item)
-            else:
-                print 'The element\n%s\ndoes not exist' % local_item
-        except IOError, error:
-            print "Cannot push %s \n %s" % (local_item, error)
+                    except:
+                        status = sys.exc_info()
+        else:
+            status = 'File %s doesnt exist and cannot be copy' % local_item
+        return status
 
     def copy_from_remote(self, remote_item, local_item):
         """
@@ -180,17 +185,35 @@ class LocalFolder:
         Files and subdirs in it must be copied on them own.
 
         """
-        try:
-            if os.path.exists(remote_item):
-                if os.path.isfile(remote_item):
+        status = 'OK'
+        if os.path.exists(remote_item):
+            if os.path.isfile(remote_item):
+                try:
                     shutil.copy2(remote_item, local_item)
-                if os.path.isdir(remote_item):
-                    if not os.path.exists(local_item):
+                except:
+                    status = sys.exc_info()
+            if os.path.isdir(remote_item):
+                if not os.path.exists(local_item):
+                    try:
                         os.mkdir(local_item)
-            else:
-                print 'The element\n%s\ndoes not exist' % remote_item
-        except IOError, error:
-            print "Cannot pull %s \n %s" % (remote_item, error)
+                    except:
+                        status = sys.exc_info()
+        else:
+            status = 'File %s doesnt exist and cannot be copy' % remote_item
+        return status
+
+
+#        try:
+#            if os.path.exists(remote_item):
+#                if os.path.isfile(remote_item):
+#                    shutil.copy2(remote_item, local_item)
+#                if os.path.isdir(remote_item):
+#                    if not os.path.exists(local_item):
+#                        os.mkdir(local_item)
+#            else:
+#                print 'The element\n%s\ndoes not exist' % remote_item
+#        except IOError, error:
+#            print "Cannot pull %s \n %s" % (remote_item, error)
 
     def delete_item(self, item_path):
         """
