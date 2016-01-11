@@ -36,6 +36,13 @@ Starting from most important:
 ## Changelog:
 
 ### 11 Jan 2016
+Ok. I took a look at the project and didnt like it :) So far its working, but its not working the way i want. Paths to all files and directories are kept i the list. All paths are absolute and remote dir path and local dir path are not used by functions in the LF class (i wanted to deal with absolute path in the main program). This is going to change. 
+From now i will focus on:
+- change the way paths to items are stored (i will use dictionary now)
+- path will not be absolute, they will be relative to local dir path now
+- i will need functions to split and join all paths
+- i will have to redesign test suite, not only to check new functionalities but also put all function tests into seperate test instead keeping them all as part of one big test
+### 11 Jan 2016
 The whole LF (local folder access) was redesigned.
 The testSuit was created.
 While working on testSuit i realised that most of functions in LF have to be changed. All public functions return a status now. It is either a OK or error message that has to be handled by main program. The testSuit is checking now all functions in LF, all possible errors and scenerious i was able to come up with. But it has to be changed a bit. 
