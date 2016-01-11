@@ -266,6 +266,87 @@ class LocalFolderTest (LocalFolderSuper):
         # lets test these directories first
         self.assertIs(test.copy_from_remote(remote_item, local_item), 'OK',
                       msg='Error while copying dir')
+        # check if dir was created
+        self.assertTrue(os.path.exists(local_item), msg='Dir wasnt created.')
+        # check how it handles not existing dir
+        self.assertIsNot(test.copy_from_remote('/some/dir', '/not/existing'),
+                         'OK', msg='Function didnt handle not existing folder')
+        # what if directories exist?
+        self.assertIs(test.copy_from_remote(remote_item, local_item), 'OK',
+                      msg='Error while copying dir')
+
+        # now for files, set up some variables
+        remote_item = self.test_info['f1']
+        file_name = os.path.split(remote_item)[1]
+        local_item = os.path.join(self.test_info['td3'], file_name)
+        if os.path.exists(local_item):
+            try:
+                os.remove(local_item)
+            except:
+                print 'Couldnt delete %s' % (local_item)
+        # now do the test for files
+        self.assertIs(test.copy_from_remote(remote_item, local_item), 'OK',
+                      msg='Error while copying file')
+        # check if file was actually copied
+        self.assertTrue(os.path.exists(local_item), msg='File wasnt copied')
+
+    # testing delete_item()
+
+        print '\t----------\n\ttesting LF.delete_item()'
+        # check if the file exists first before we go any further
+        item_path = self.test_info['f1']
+        self.assertTrue(os.path.exists(item_path))
+        # check the function with existing file
+        self.assertIs(test.delete_item(item_path), 'OK',
+                      msg='Didnt delete file %s' % item_path)
+        # check if it worked
+        self.assertFalse(os.path.exists(item_path),
+                         msg='File wasnt deleted')
+        # check it for file that doesnt exist
+        self.assertIs(test.delete_item('/some/dir/or/file'), 'OK',
+                      msg='Didnt handle not existing file')
+        # check the function with folders
+        item_path = self.test_info['td2']
+        self.assertIs(test.delete_item(item_path), 'OK',
+                      msg='Error deleting folder')
+        # lets have a look was the folder actually deleted
+        self.assertFalse(os.path.exists(item_path),
+                         msg='Folder wasnt deleted')
+
+    # testing save_backup_list()
+
+        print '\t----------\n\ttesting LF.save_backup_list()'
+        # lets prepare the path for save file
+        file_path = os.path.join(self.test_info['td3'], 'save')
+        # check saving function
+        self.assertIs(test.save_backup_list(file_path), 'OK',
+                      msg='Error while saving backup object')
+        # see if pickle was created
+        self.assertTrue(os.path.exists(file_path),
+                        msg='Pickle wasnt created')
+        # pickle second time
+        self.assertIs(test.save_backup_list(file_path), 'OK',
+                      msg='Error while saving backup object')
+
+    # testing load_backup_list()
+
+        print '\t----------\n\ttesting LF.load_backup_list()'
+        # as we know the backup file was created, lets create a backup
+        # of object itself, delete it, load it from pickle and
+        # compare if they are the same
+        test_backup = test
+        self.assertEqual(test, test_backup,
+                         msg='Copied objects are not equal')
+        del(test)
+        test = LF.LocalFolder()
+        self.assertIs(test.load_backup_list(file_path), 'OK',
+                      msg='Error loading pickled file')
+        # and compare loaded object and saved one
+        self.assertEqual(test.items, test_backup.items,
+                         msg='Loaded object isnt the same')
+        # was the pickle file deleted?
+        self.assertTrue(os.path.exists(file_path),
+                        msg='The pickle file is missing')
 
     # the goodbye message
 

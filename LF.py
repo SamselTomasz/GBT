@@ -164,12 +164,14 @@ class LocalFolder:
                     shutil.copy2(local_item, remote_item)
                 except:
                     status = sys.exc_info()
-            if os.path.isdir(local_item):
+            elif os.path.isdir(local_item):
                 if not os.path.exists(remote_item):
                     try:
                         os.mkdir(remote_item)
                     except:
                         status = sys.exc_info()
+            else:
+                status = 'The item %s is not dir or file' % local_item
         else:
             status = 'File %s doesnt exist and cannot be copy' % local_item
         return status
@@ -192,69 +194,67 @@ class LocalFolder:
                     shutil.copy2(remote_item, local_item)
                 except:
                     status = sys.exc_info()
-            if os.path.isdir(remote_item):
+            elif os.path.isdir(remote_item):
                 if not os.path.exists(local_item):
                     try:
                         os.mkdir(local_item)
                     except:
                         status = sys.exc_info()
+            else:
+                status = 'The item %s is not a dir or file.' % remote_item
         else:
             status = 'File %s doesnt exist and cannot be copy' % remote_item
         return status
-
-
-#        try:
-#            if os.path.exists(remote_item):
-#                if os.path.isfile(remote_item):
-#                    shutil.copy2(remote_item, local_item)
-#                if os.path.isdir(remote_item):
-#                    if not os.path.exists(local_item):
-#                        os.mkdir(local_item)
-#            else:
-#                print 'The element\n%s\ndoes not exist' % remote_item
-#        except IOError, error:
-#            print "Cannot pull %s \n %s" % (remote_item, error)
 
     def delete_item(self, item_path):
         """
         Deletes file or directory.
         Takes one argument, full path to an item.
         """
-        try:
-            if os.path.exists(item_path):
-                if os.path.isfile(item_path):
+        status = 'OK'
+        if os.path.exists(item_path):
+            if os.path.isfile(item_path):
+                try:
                     os.remove(item_path)
-                if os.path.isdir(item_path):
+                except:
+                    status = sys.exc_info()
+            elif os.path.isdir:
+                try:
                     shutil.rmtree(item_path)
-        except IOError, error:
-            print "Cannot delete %s \n %s" % (item_path, error)
+                except:
+                    status = sys.exc_info()
+            else:
+                status = 'The item %s is not a dir or a file' % item_path
+        return status
 
     def save_backup_list(self, save_file):
         """
         Saves created/updated list of items and local and remote paths.
         Takes a full path to the file as an argument!
         """
+        status = 'OK'
         try:
             save_data = [[self.items], [self.backup_local_path],
                          [self.backup_remote_path]]
             pickle_file = file(save_file, "w")
             pickle.dump(save_data, pickle_file)
-        except IOError, error:
-            print "Cannot save the list of files to %s \n %s" % (
-                save_file, error)
+        except:
+            status = sys.exc_info()
+        return status
 
     def load_backup_list(self, save_file):
         """
         Loads saved list of items and local and remote paths.
         Takes a full path to the file as an argument!
         """
+        status = 'OK'
         try:
             pickle_file = file(save_file)
             [[self.items], [self.backup_local_path],
              [self.backup_remote_path]] = pickle.load(pickle_file)
-        except IOError, error:
-            print "Cannot load the list of files from %s \n %s" % (
-                save_file, error)
+        except:
+            status = sys.exc_info()
+        return status
 
 if __name__ == '__main__':
     print 'This class is not a standalone program'
