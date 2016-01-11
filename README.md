@@ -2,10 +2,13 @@
 
 This is:
 ## Gumbas Backup Tool
+Status:
+under development
 
+## Overview:
 So what it does? Well, it is designed to keep local folder mirrored at some remote location. It can be another local folder, can be an FTP server, Google Drive, samba server in your local network etc. 
 
-Why not use lftp for example? Because it will not run on Android! :) One of the goals of this program is to keep my files exactly the same across my devices. Some of them run Linux, some of the like my mobile phone or tablet run Android. This is why Python is my weapon of choice. Trying to keep it simple, extendable, scalable, and above all, usable :)
+Why not use lftp for example? Because it will not run on Android! :) One of the goals of this program is to keep my files exactly the same across my devices. Some of them run Linux, some of them like my mobile phone or tablet run Android. This is why Python is my weapon of choice. Trying to keep it simple, extendable, scalable, and above all, usable :)
 
 This is very very very! early version. Doesnt work yet. But work is in progress, please stay tuned :) 
 
@@ -13,6 +16,7 @@ This is very very very! early version. Doesnt work yet. But work is in progress,
 
 Not much :) Thats the best answear. 
 So far i was able to create class to provide an access to files and directories on local file system. More to come.
+Test suit created. Functions to deal with local files are working and passing all tests. 
 
 ## Whats to do:
 
@@ -31,10 +35,13 @@ Starting from most important:
 
 ## Changelog:
 
+### 11 Jan 2016
+The whole LF (local folder access) was redesigned.
+The testSuit was created.
+While working on testSuit i realised that most of functions in LF have to be changed. All public functions return a status now. It is either a OK or error message that has to be handled by main program. The testSuit is checking now all functions in LF, all possible errors and scenerious i was able to come up with. But it has to be changed a bit. 
 ### 10 Dec 2015
 Amount of functions and complication of setting up testing environment every time when something is changed made me think about test suit. The basic setup of local folders and files for test suit was added.
 ### ...
 The local file and dir access created. Its running smooth. The functions of this class will be an outline for future classes, like ftp and samba access. This functions will have the same name across all classes, so no matter whats the destination dir, the main program will be able to use its basic commands to mirror files. This will provide scalability of program and its functions.
-
 ### Some time ago:
 Came up with idea to create this program. Start working on outline to provide basic file and dir acces on local file system. With the time the basic functions of the class emerged.
