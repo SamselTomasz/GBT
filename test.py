@@ -12,6 +12,7 @@ import sys
 # deletes it after the test are done
 class LocalFolderSuper (unittest.TestCase):
 
+    # this dictionary will be returned after a setUp()
     test_info = {}
 
     def setUp(self):
@@ -30,25 +31,38 @@ class LocalFolderSuper (unittest.TestCase):
             td3 = full path to third dir
             td4 = full path to empty dir
 
-            - few entries added during tests:
-            f3  = full path to third file
-                    added while doing the add_list_item() test
-            rf  = full path to remote item
-                    added while doing the copy_to_remote() test
+        Dir tree:
+
+            wcd
+            |
+            |___td1
+            |   |___f1
+            |   |
+            |   |___td2
+            |       |___f2
+            |
+            |___td3
+            |
+            |___td4
 
         Both files are filled with some sample text so their sizes are
         not equal to zero.
         """
-        print '----------\nsetting up test directory'
-        # get a current dir
+
+        print '----------\nsetting up'
+
+        # wcd - current working directory
         working_directory = os.getcwd()
-        # creating main directory in current working path
+
+        # td1 - creating main directory in current working path
+        # use as backup local path
         testdir = os.path.join(working_directory, "testdir")
         try:
             os.mkdir(testdir)
         except IOError, error:
             print "Cannot create directory '%s' : '%s'" % (testdir, error)
-        # creating first file with some text in it
+
+        # f1 - creating first file with some text in it
         file1 = os.path.join(testdir, "file1.txt")
         try:
             sample_file = file(file1, "w")
@@ -60,13 +74,15 @@ class LocalFolderSuper (unittest.TestCase):
             del sample_file
         except IOError, error:
             print "Cannot create file '%s' : '%s'" % (file1, error)
-        # adding a subdir
+
+        # td2 - adding a subdir
         testdir2 = os.path.join(testdir, "subdir")
         try:
             os.mkdir(testdir2)
         except IOError, error:
             print "Cannot create directory '%s' : '%s'" % (testdir2, error)
-        # .. and another sample file filled with a bit of text
+
+        # f2 - .. and another sample file filled with a bit of text
         file2 = os.path.join(testdir2, "file2.txt")
         try:
             sample_file = file(file2, "w")
@@ -81,13 +97,16 @@ class LocalFolderSuper (unittest.TestCase):
             del sample_file
         except IOError, error:
             print "Cannot create file %s : %s" % (file2, error)
-        # new empty dir to work with as a backup path
+
+        # td3 - new empty dir
         testdir3 = os.path.join(working_directory, 'testdir2')
         try:
             os.mkdir(testdir3)
         except IOError, error:
             print "Cannot create directory %s : %s" % (testdir3, error)
-        # another empty dir
+
+        # td4 - another empty dir
+        # use it for remote path
         testdir4 = os.path.join(working_directory, 'testdir24')
         try:
             os.mkdir(testdir4)
@@ -98,14 +117,17 @@ class LocalFolderSuper (unittest.TestCase):
         self.test_info = {"wcd": working_directory, "td1": testdir,
                           "f1": file1, "td2": testdir2, "f2": file2,
                           "td3": testdir3, "td4": testdir4}
-        print '----------\n'
+        print '----------'
 
     def tearDown(self):
+
         """
         Cleaning up all created files and folders.
         """
-        print '\n----------\ntearing down test directories'
-        # just get rid of all the files and directories at once
+
+        print '----------\ntearing down'
+
+        # just get rid of all the files and directories
         try:
             shutil.rmtree(self.test_info['td1'])
             shutil.rmtree(self.test_info['td3'])
@@ -113,16 +135,16 @@ class LocalFolderSuper (unittest.TestCase):
         except IOError, error:
             print 'Couldnt delete test directory %s : %s' % (
                 self.test_info['td1'], error)
-        print '----------\n'
+        print '----------'
 
 
 # ---------------------------------------------------------------------------
 # create here all tests needed for local folder class
 # pass LocalFolderSuper for setting up and tearing down test dirs
-class LocalFolderTest (LocalFolderSuper):
-    def runTest(self):
 
-        print '\t----------\n\ttesting calling empty test object'
+class CallEmptyTestObject (LocalFolderSuper):
+    def runTest(self):
+        print '\ttesting calling empty test object'
 
         # create an empty LF object
         test = LF.LocalFolder()
@@ -130,12 +152,47 @@ class LocalFolderTest (LocalFolderSuper):
         # after creating an empty test LocalFolder object just check if
         # all fields are empty
 
-        self.failUnless(test.items == [[], [], []],
+        # check if items list is empty
+        self.failUnless(test.items == {},
                         "List of items isnt empty: %s" % test.items)
-        self.failUnless(test.backup_local_path == "",
+
+        # check if backup_local_path is empty
+        self.failUnless(test.backup_local_path == '',
                         "Backup path isnt empty: %s" % test.backup_local_path)
-        self.failUnless(test.backup_remote_path == "",
+
+        # check if backup_remote_path is empty
+        self.failUnless(test.backup_remote_path == '',
                         "Remote path isnt empty: %s" % test.backup_remote_path)
+
+class CallFilledTestObject (LocalFolderSuper):
+    def runTest(self):
+        print '\ttesting calling test object with data passed'
+
+        # create filled LF object
+        items = {'item1' : 'value1', 'item2' : 'value2'}
+        local_path = '/local/path'
+        remote_path = '/remote/path'
+
+        # call filled LF
+        test = LF.LocalFolder(items, local_path, remote_path)
+
+        # lets check if everything is ok, compare values from object
+        # with their passed values
+
+        # check items list first
+        self.failUnless(test.items == {'item1' : 'value1', 'item2' : 'value2'},
+                        "Passed values from items list didnt mach")
+
+        # check local_path
+        self.failUnless(test.backup_local_path == '/local/path',
+                        "Passed value from backup_local_path didnt match")
+
+        # check remote_path
+        self.failUnless(test.backup_remote_path == '/remote/path',
+                        "Passed value from backup_remote_path didnt match")
+
+class LocalFolderTest (LocalFolderSuper):
+    def runTest(self):
 
     # testing add_dir() method
 
@@ -359,6 +416,8 @@ def suite():
 
     suite = unittest.TestSuite()
     # add all test to the test suite
+    suite.addTest(CallEmptyTestObject())
+    suite.addTest(CallFilledTestObject())
     suite.addTest(LocalFolderTest())
     # return created test suite
     return suite

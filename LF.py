@@ -60,10 +60,16 @@ class LocalFolder:
             - load saved list of items and paths
     """
 
-    def __init__(self):
-        self.items = [[], [], []]
-        self.backup_local_path = ""
-        self.backup_remote_path = ""
+    # setup some starting parameters
+    items = {}
+    backup_local_path = ''
+    backup_remote_path = ''
+
+    def __init__(self, items=items, local_path=backup_local_path,
+                 remote_path=backup_remote_path):
+        self.items = items
+        self.backup_local_path = local_path
+        self.backup_remote_path = remote_path
         return
 
     def __fill_table__(self, path_item):
