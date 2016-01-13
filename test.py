@@ -12,6 +12,7 @@ import sys
 # deletes it after the test are done
 class LocalFolderSuper (unittest.TestCase):
 
+    print '----------\nBegin testing LF'
     # this dictionary will be returned after a setUp()
     test_info = {}
 
@@ -48,8 +49,6 @@ class LocalFolderSuper (unittest.TestCase):
         Both files are filled with some sample text so their sizes are
         not equal to zero.
         """
-
-        print '----------\nsetting up'
 
         # wcd - current working directory
         working_directory = os.getcwd()
@@ -117,15 +116,12 @@ class LocalFolderSuper (unittest.TestCase):
         self.test_info = {"wcd": working_directory, "td1": testdir,
                           "f1": file1, "td2": testdir2, "f2": file2,
                           "td3": testdir3, "td4": testdir4}
-        print '----------'
 
     def tearDown(self):
 
         """
         Cleaning up all created files and folders.
         """
-
-        print '----------\ntearing down'
 
         # just get rid of all the files and directories
         try:
@@ -135,7 +131,6 @@ class LocalFolderSuper (unittest.TestCase):
         except IOError, error:
             print 'Couldnt delete test directory %s : %s' % (
                 self.test_info['td1'], error)
-        print '----------'
 
 
 # ---------------------------------------------------------------------------
@@ -164,12 +159,13 @@ class CallEmptyTestObject (LocalFolderSuper):
         self.failUnless(test.backup_remote_path == '',
                         "Remote path isnt empty: %s" % test.backup_remote_path)
 
+
 class CallFilledTestObject (LocalFolderSuper):
     def runTest(self):
         print '\ttesting calling test object with data passed'
 
         # create filled LF object
-        items = {'item1' : 'value1', 'item2' : 'value2'}
+        items = {'item1': 'value1', 'item2': 'value2'}
         local_path = '/local/path'
         remote_path = '/remote/path'
 
@@ -180,7 +176,7 @@ class CallFilledTestObject (LocalFolderSuper):
         # with their passed values
 
         # check items list first
-        self.failUnless(test.items == {'item1' : 'value1', 'item2' : 'value2'},
+        self.failUnless(test.items == {'item1': 'value1', 'item2': 'value2'},
                         "Passed values from items list didnt mach")
 
         # check local_path
@@ -191,12 +187,55 @@ class CallFilledTestObject (LocalFolderSuper):
         self.failUnless(test.backup_remote_path == '/remote/path',
                         "Passed value from backup_remote_path didnt match")
 
+        # check if we can access single item from items list
+        self.failUnless(test.items['item1'] == 'value1',
+                        "Single item from dictionary of items didnt match")
+
+
+class __path_split__Test (LocalFolderSuper):
+    def runTest(self):
+        print '\ttesting __path_split__()'
+
+        # create filled LF object
+        local_path = '/local/path'
+        remote_path = '/remote/path'
+        local_split = '/local/path/split/this.file'
+        remote_split = '/remote/path/split/this.file'
+        split = 'split/this.file'
+        # call filled LF
+        test = LF.LocalFolder(local_path=local_path, remote_path=remote_path)
+
+        # split local_split using local_path form test object
+        self.assertEqual(test.__path_split__(test.backup_local_path,
+                                             local_split),
+                         split,
+                         msg='Splitting folder using local path didnt work')
+
+        # split remote
+        self.assertEqual(test.__path_split__(test.backup_remote_path,
+                                             remote_split),
+                         'split/this.file',
+                         msg='Splitting folder using remote path didnt work')
+
+        # handle error
+        self.assertIs(test.__path_split__(test.backup_remote_path,
+                                          '/bad/path'),
+                      'Error',
+                      msg="Function didnt handle bad path")
+
+
+class __path_join__Test (LocalFolderSuper):
+    def runTest(self):
+        2+2
+
+
 class LocalFolderTest (LocalFolderSuper):
     def runTest(self):
 
-    # testing add_dir() method
-
+        print '\n\n\n\t---------- old tests ----------'
         print '\t----------\n\ttesting LF.add_dir()'
+
+        test = LF.LocalFolder
 
         # adding content of test dir 1
         self.assertIs(test.add_dir(self.test_info['td1']), 'OK',
@@ -405,10 +444,6 @@ class LocalFolderTest (LocalFolderSuper):
         self.assertTrue(os.path.exists(file_path),
                         msg='The pickle file is missing')
 
-    # the goodbye message
-
-        print '\t----------\n\tna razie tyle\n\t----------'
-
 
 # ---------------------------------------------------------------------------
 # set up the test suite
@@ -418,6 +453,9 @@ def suite():
     # add all test to the test suite
     suite.addTest(CallEmptyTestObject())
     suite.addTest(CallFilledTestObject())
+    suite.addTest(__path_split__Test())
+    suite.addTest(__path_join__Test())
+    # below old test -- need to change them after redesigning functions
     suite.addTest(LocalFolderTest())
     # return created test suite
     return suite

@@ -72,6 +72,20 @@ class LocalFolder:
         self.backup_remote_path = remote_path
         return
 
+    def __path_split__(self, directory, path):
+        if path != '' and directory != '':
+            if isinstance(path, str):
+                splited = path.split(directory)
+                if len(splited) == 2:
+                    splited = splited[1][1:]
+                else:
+                    splited = 'Error'
+            else:
+                splited = 'Error'
+        else:
+            splited = 'Error'
+        return splited
+
     def __fill_table__(self, path_item):
         """
         This function fills table with file/dir name, its size and date
@@ -94,7 +108,6 @@ class LocalFolder:
             for file in files:
                 path = os.path.join(dir, file)
                 path = os.path.normcase(path)
-#                print path
                 self.__fill_table__(path)
         os.path.walk(dir_path, fill_items, 0)
 
