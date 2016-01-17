@@ -73,18 +73,34 @@ class LocalFolder:
         return
 
     def __path_split__(self, directory, path):
+
+        def splitting(home, head, tail):
+            self.splitted = tail
+            if home != head:
+                home = home
+                a = os.path.split(head)
+                head = a[0]
+                tail = os.path.join(a[1], tail)
+                splitting(home, head, tail)
+            return self.splitted
+
+        splitted = 'Error'
+        temp = ''
+
+        if path.split(directory)[0] == '':
+            if path != '' and directory != '':
+                if isinstance(directory, str) and isinstance(path, str):
+                    temp = splitting(directory, path, tail='')
+                    temp = os.path.split(temp)
+                    splitted = temp[0]
+        return splitted
+
+    def __path_join__(self, directory, path):
+        joined = 'Error'
         if path != '' and directory != '':
-            if isinstance(path, str):
-                splited = path.split(directory)
-                if len(splited) == 2:
-                    splited = splited[1][1:]
-                else:
-                    splited = 'Error'
-            else:
-                splited = 'Error'
-        else:
-            splited = 'Error'
-        return splited
+            if isinstance(path, str) and isinstance(directory, str):
+                joined = os.path.join(directory, path)
+        return joined
 
     def __fill_table__(self, path_item):
         """

@@ -226,7 +226,19 @@ class __path_split__Test (LocalFolderSuper):
 
 class __path_join__Test (LocalFolderSuper):
     def runTest(self):
-        2+2
+
+        print '\ttesting __path_join__()'
+
+        # create filled LF object
+        local_path = '/local/path'
+        remote_path = '/remote/path'
+        local_join = '/local/path/split/this.file'
+        remote_join = '/remote/path/split/this.file'
+        items = {'split/this.file': {'size': 123, 'date': 321}}
+        # call filled LF
+        test = LF.LocalFolder(local_path=local_path, remote_path=remote_path)
+# zmienic i napisac! ---------^^^^
+
 
 
 class LocalFolderTest (LocalFolderSuper):
