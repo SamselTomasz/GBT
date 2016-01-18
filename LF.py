@@ -102,16 +102,33 @@ class LocalFolder:
                 joined = os.path.join(directory, path)
         return joined
 
-    def __fill_table__(self, path_item):
+    def __fill_table__(self, directory, path_item):
         """
         This function fills table with file/dir name, its size and date
         of last modification.
         Takes one argument, the full path to a file or directory.
         Do not use on its own!
         """
-        self.items[0].append(path_item)
-        self.items[1].append(os.path.getsize(path_item))
-        self.items[2].append(time.ctime(os.path.getmtime(path_item)))
+        name = str
+        size = int
+        mtime = str
+        status = 'Error'
+        if path_item.split(directory)[0] == '':
+            name = self.__path_split__(directory, path_item)
+            if name != 'Error':
+                try:
+                    size = os.path.getsize(path_item)
+                except:
+                    status = sys.exc_info()
+                    return status
+                try:
+                    mtime = time.ctime(os.path.getmtime(path_item))
+                except:
+                    status = sys.exc_info()
+                    return status
+                self.items[name] = {'size': size, 'time': mtime}
+                status = 'OK'
+        return status
 
     def __list_dir__(self, dir_path):
         """
@@ -119,13 +136,21 @@ class LocalFolder:
         folder given to the function.
         Takes one argument, a full path to a directory.
         """
-
         def fill_items(arg, dir, files):
             for file in files:
-                path = os.path.join(dir, file)
+                path = self.__path_join__(dir, file)
                 path = os.path.normcase(path)
-                self.__fill_table__(path)
-        os.path.walk(dir_path, fill_items, 0)
+                self.__fill_table__(dir_path, path)
+
+        status = 'OK'
+        if os.path.exists(dir_path):
+            try:
+                os.path.walk(dir_path, fill_items, 0)
+            except:
+                status = sys.exc_info()
+        else:
+            status = 'Error'
+        return status
 
     def add_dir(self, new_path):
         """
@@ -134,33 +159,33 @@ class LocalFolder:
         of last modification and stores them along with file/dir path.
         Takes full path to directory as an argument.
         """
-        status = 'OK'
         if os.path.exists(new_path):
-            try:
-                self.__list_dir__(new_path)
-            except:
-                status = sys.exc_info()
+            if self.__list_dir__(new_path) == 'OK':
+                status = 'OK'
+            else:
+                status = 'Didnt list dir %s' % new_path
         else:
-            status = 'File %s doesnt exist.' % new_path
+            status = 'Directory %s doesnt exist.' % new_path
         return status
 
-    def add_list_item(self, new_file):
+    def add_list_item(self, directory, new_file):
         """
         Adds a single item to the backup list.
         Checks items atributes after adding it to the list.
         Takes a full path to an item as argument.
         """
-        status = 'OK'
-        if self.items[0].count(new_file) == 0:
-            if os.path.exists(new_file) is True:
-                try:
-                    self.__fill_table__(new_file)
-                except:
-                    status = sys.exc_info()
+        path = self.__path_join__(directory, new_file)
+        if path != 'Error':
+            if os.path.exists(path) is True:
+                if self.__fill_table__(directory, new_file) == 'OK':
+                    status = 'OK'
+                else:
+                    status = 'Couldnt list %s' % path
             else:
-                status = 'Cannot read file %s' % new_file
+                status = 'File %s doesnt exist' % path
         else:
-            status = 'File %s already listed' % new_file
+            status = 'Error getting full path from %s and %s' % (
+                directory, new_file)
         return status
 
     def rem_list_item(self, item):

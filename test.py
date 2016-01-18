@@ -5,6 +5,7 @@ import LF
 import os
 import shutil
 import sys
+import time
 
 
 # ---------------------------------------------------------------------------
@@ -223,6 +224,12 @@ class __path_split__Test (LocalFolderSuper):
                       'Error',
                       msg="Function didnt handle bad path")
 
+        # handlig repeated root directory in passed path
+        self.assertEqual(test.__path_split__(test.backup_local_path,
+                                             '/local/path/local/path/t.txt'),
+                         'local/path/t.txt',
+                         msg='Didnt handle repeated root directory.')
+
 
 class __path_join__Test (LocalFolderSuper):
     def runTest(self):
@@ -236,9 +243,199 @@ class __path_join__Test (LocalFolderSuper):
         remote_join = '/remote/path/split/this.file'
         items = {'split/this.file': {'size': 123, 'date': 321}}
         # call filled LF
-        test = LF.LocalFolder(local_path=local_path, remote_path=remote_path)
-# zmienic i napisac! ---------^^^^
+        test = LF.LocalFolder(items=items,
+                              local_path=local_path,
+                              remote_path=remote_path)
 
+        # testing with local folder
+        self.assertEqual(test.__path_split__(local_path, local_join),
+                         test.items.keys()[0],
+                         msg='Didnt split local folder path')
+
+        # testing with remote folder
+        self.assertEqual(test.__path_split__(remote_path, remote_join),
+                         test.items.keys()[0],
+                         msg='Didnt split remote folder path')
+
+        # testing with wrong path
+        self.assertEqual(test.__path_split__(local_path, '/wrong/path'),
+                         'Error',
+                         msg='Function didnt return error for wrong path')
+
+
+class __fill_table__Test(LocalFolderSuper):
+    def runTest(self):
+
+        print '\ttesting __fill_table__()'
+
+        # create filled LF object
+        local_path = self.test_info['td1']
+        remote_path = self.test_info['td4']
+        # call filled LF
+        test = LF.LocalFolder(local_path=local_path,
+                              remote_path=remote_path)
+        # see if we got it right
+        self.assertEqual(test.backup_local_path, self.test_info['td1'],
+                         msg='Local path isnt equal to preset')
+        self.assertEqual(test.backup_remote_path, self.test_info['td4'],
+                         msg='Remote path isnt equal to preset')
+        self.assertEqual(test.items, {},
+                         msg='Dictionary of items isnt empty')
+
+        # add a single file and compare its atributes
+        # note! that we operate on long (full) paths names
+        self.assertEqual(test.__fill_table__(test.backup_local_path,
+                                             self.test_info['f1']),
+                         'OK', msg='Error returned by function')
+
+        # check if all values are accessible
+        self.assertTrue('file1.txt' in test.items.keys(),
+                        msg='file1.txt is not listed in dictionary keys')
+
+        # lets see if size is correct
+        self.assertEqual(test.items['file1.txt']['size'],
+                         os.path.getsize(self.test_info['f1']),
+                         msg='Size doesnt match')
+
+        # and its date of last modification
+        self.assertEquals(test.items['file1.txt']['time'],
+                          time.ctime(os.path.getmtime(self.test_info['f1'])),
+                          msg='Time of last modification doesnt match')
+
+        # how does it handle wrong paths
+        test.items = {}
+        self.assertIs(test.__fill_table__(test.backup_local_path,
+                                          '/dir/doesnt/match/file.txt'),
+                      'Error',
+                      msg='Function didnt return error for bad path')
+
+
+class __list_dir__Test(LocalFolderSuper):
+    def runTest(self):
+
+        print '\ttesting __list_dir__()'
+
+        # create filled LF object
+        local_path = self.test_info['td1']
+        remote_path = self.test_info['td4']
+        # call filled LF
+        test = LF.LocalFolder(local_path=local_path,
+                              remote_path=remote_path)
+
+        # see if ok status is returned on existing folder
+        self.assertEqual(test.__list_dir__(test.backup_local_path),
+                         'OK',
+                         msg='Listing directory returned error')
+
+        # see if error message is returned on not existing folder
+        self.assertEqual(test.__list_dir__('/this/folder/doesnt/exist'),
+                         'Error',
+                         msg='Function didnt handle bad dir name')
+
+        # lets see if all items are listed
+        self.assertEqual(test.items.keys(),
+                         ['file1.txt', 'subdir/file2.txt', 'subdir'],
+                         msg='Files and dirs not listed in test.items')
+
+        # and what happend if we list the same folder again
+        self.assertEqual(test.__list_dir__(test.backup_local_path),
+                         'OK',
+                         msg='Listing directory returned error')
+        self.assertEqual(test.items.keys(),
+                         ['file1.txt', 'subdir/file2.txt', 'subdir'],
+                         msg='Files and dirs not listed in test.items')
+
+
+class add_dirTest(LocalFolderSuper):
+    def runTest(self):
+
+        print '\ttesting add_dir()'
+
+        # create filled LF object
+        local_path = self.test_info['td1']
+        remote_path = self.test_info['td4']
+        # call filled LF
+        test = LF.LocalFolder(local_path=local_path,
+                              remote_path=remote_path)
+
+        # lets see what it will return with existing dir
+        self.assertEqual(test.add_dir(test.backup_local_path),
+                         'OK',
+                         msg='Returned error while adding directory')
+
+        # lets see if all items are listed
+        self.assertEqual(test.items.keys(),
+                         ['file1.txt', 'subdir/file2.txt', 'subdir'],
+                         msg='Files and dirs not listed in test.items')
+
+        # and what happend if we list the same folder again
+        self.assertEqual(test.__list_dir__(test.backup_local_path),
+                         'OK',
+                         msg='Listing directory returned error')
+        self.assertEqual(test.items.keys(),
+                         ['file1.txt', 'subdir/file2.txt', 'subdir'],
+                         msg='Files and dirs not listed in test.items')
+
+        # and try to add dir that doesnt exist
+        self.assertNotEqual(test.add_dir('/this/folder/doesnt/exist'),
+                            'OK',
+                            msg='OK message on adding not existing dir')
+
+
+class add_list_itemTest(LocalFolderSuper):
+    def runTest(self):
+
+        print '\ttesting add_list_item()'
+
+        # create filled LF object
+        local_path = self.test_info['td1']
+        remote_path = self.test_info['td4']
+        # call filled LF
+        test = LF.LocalFolder(local_path=local_path,
+                              remote_path=remote_path)
+        # add the content of the local_path dir to test.items dict
+        self.assertEqual(test.add_dir(test.backup_local_path),
+                         'OK',
+                         msg='Returned error while adding directory')
+
+        # lets see if all items are listed
+        self.assertEqual(test.items.keys(),
+                         ['file1.txt', 'subdir/file2.txt', 'subdir'],
+                         msg='Files and dirs not listed in test.items')
+
+        # lets create new not listed file
+        file3 = test.__path_join__(self.test_info['td1'], "file3.txt")
+        try:
+            sample_file = file(file3, "w")
+            sample_file.write("""
+                              Sample line xx
+                              Sample line yy
+                              Sample line zz
+                              Sample line aa
+                              Sample line bb
+                              Sample line cc
+                              """)
+            del sample_file
+        except:
+            print "Cannot create file %s : %s" % (file3, sys.exc_info())
+
+        # lets try to add newly created file
+        self.assertEqual(test.add_list_item(test.backup_local_path,
+                                            file3),
+                         'OK',
+                         msg='Didnt add newly created file to items dict')
+
+        # see if the file realy is listed
+        self.assertTrue('file3.txt' in test.items.keys(),
+                        msg='File wasnt added to the items dict.')
+
+        # now add something that doesnt exist
+        self.assertNotEqual(test.add_list_item(test.backup_local_path,
+                                               'doesntexist.txt'),
+                            'OK',
+                            msg='Didnt rise error adding not existing file.')
+# zanim pojdziesz dalej powypelniaj opisy funkcji, zrob sobie liste
+# danych wejsciowych funkcji i co zwracaja!
 
 
 class LocalFolderTest (LocalFolderSuper):
@@ -248,20 +445,6 @@ class LocalFolderTest (LocalFolderSuper):
         print '\t----------\n\ttesting LF.add_dir()'
 
         test = LF.LocalFolder
-
-        # adding content of test dir 1
-        self.assertIs(test.add_dir(self.test_info['td1']), 'OK',
-                      msg='Didnt list existing directory')
-        # have a look if list isnt still empty
-        self.failIf(test.items == [[], [], []],
-                    "LF.add_dir didnt list dir %s" % self.test_info['td1'])
-        # check if the first item on the list match the first test file
-        self.failUnless(test.items[0][0] == self.test_info['f1'],
-                        "Listed file doesnt mach: %s\n%s" %
-                        (test.items[0][0], self.test_info['f1']))
-        # adding not existing dir
-        self.assertIsNot(test.add_dir('/this/dir/doesnt/exist'), 'OK',
-                         msg='Listed not existing file')
 
     # testing add_list_item() method
 
@@ -467,6 +650,10 @@ def suite():
     suite.addTest(CallFilledTestObject())
     suite.addTest(__path_split__Test())
     suite.addTest(__path_join__Test())
+    suite.addTest(__fill_table__Test())
+    suite.addTest(__list_dir__Test())
+    suite.addTest(add_dirTest())
+    suite.addTest(add_list_itemTest())
     # below old test -- need to change them after redesigning functions
     suite.addTest(LocalFolderTest())
     # return created test suite
