@@ -35,6 +35,8 @@ Starting from most important:
 
 ## Changelog:
 
+### 18 Jan 2016
+Still working on redesigning functions to work with dictionary rather then list. Finding bigger and smaller problems in the way the program seams to develop new functions and unctionalities :) Getting there though :)
 ### 11 Jan 2016
 Ok. I took a look at the project and didnt like it :) So far its working, but its not working the way i want. Paths to all files and directories are kept i the list. All paths are absolute and remote dir path and local dir path are not used by functions in the LF class (i wanted to deal with absolute path in the main program). This is going to change. 
 From now i will focus on:
